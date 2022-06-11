@@ -1,17 +1,17 @@
 use sqlite::Connection;
 use std::{env, path::Path};
 
-struct Todo<'a> {
-    id: &'a str,
-    name: &'a str,
+struct Todo {
+    id: String,
+    name: String,
     done: bool,
 }
 
-impl Default for Todo<'_> {
+impl Default for Todo {
     fn default() -> Self {
         Todo {
-            id: "0",
-            name: "0",
+            id: String::from("0"),
+            name: String::from("0"),
             done: false,
         }
     }
@@ -49,8 +49,8 @@ fn list(connection: &Connection) {
 
             for &(column, value) in todo_row.iter() {
                 match column {
-                    "id" => todo.id = value.unwrap(),
-                    "name" => todo.name = value.unwrap(),
+                    "id" => todo.id = String::from(value.unwrap()),
+                    "name" => todo.name = String::from(value.unwrap()),
                     "done" => {
                         todo.done = match value.unwrap() {
                             "true" => true,
