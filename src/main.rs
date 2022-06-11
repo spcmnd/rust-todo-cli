@@ -1,6 +1,7 @@
 use sqlite::Connection;
 use std::{env, path::Path};
 
+#[derive(Debug)]
 struct Todo {
     id: String,
     name: String,
@@ -34,7 +35,7 @@ fn create_todos_table(connection: &Connection) {
     connection
         .execute(
             "
-            CREATE TABLE IF NOT EXISTS todos (id INTEGER, name TEXT, done BOOLEAN);
+            CREATE TABLE IF NOT EXISTS todos (id INTEGER PRIMARY KEY, name TEXT, done BOOLEAN);
             ",
         )
         .unwrap();
@@ -77,13 +78,57 @@ fn list(connection: &Connection) {
         .unwrap();
 }
 
+fn add(connection: &Connection, name: String) {
+    connection
+        .execute(format!(
+            "INSERT INTO todos (name, done) VALUES ('{}', false)",
+            name
+        ))
+        .unwrap();
+    println!("The to-do has been added!");
+}
+
+fn done(connection: &Connection, id: u128) {
+    connection
+        .execute(format!("UPDATE todos SET done='true' WHERE id={}", id))
+        .unwrap();
+    println!("The to-do is done!");
+}
+
+fn delete(connection: &Connection, id: u128) {
+    connection
+        .execute(format!("DELETE FROM todos WHERE id={}", id))
+        .unwrap();
+    println!("The to-do has been deleted!");
+}
+
 fn main() {
-    let action = env::args().nth(1).expect("No action provided");
+    let action: String = env::args().nth(1).expect("No action provided");
     let connection: Connection = get_database_connection();
     create_todos_table(&connection);
 
     match action.as_str() {
         "list" => list(&connection),
+        "add" => {
+            let name: String = env::args().nth(2).expect("No name provided");
+            add(&connection, name);
+        }
+        "done" => {
+            let id: u128 = env::args()
+                .nth(2)
+                .expect("ID not provided")
+                .parse()
+                .unwrap();
+            done(&connection, id);
+        }
+        "delete" => {
+            let id: u128 = env::args()
+                .nth(2)
+                .expect("ID not provided")
+                .parse()
+                .unwrap();
+            delete(&connection, id);
+        }
         _ => println!("Wrong action"),
     };
 }
